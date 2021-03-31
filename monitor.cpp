@@ -1,26 +1,9 @@
 #include "monitor.h"
+#ifndef H_FILES
+#define H_FILES
+    #include "tools.h"
+#endif
 using namespace std;
-
-int int_log2(int number){
-    int result = 0;
-    if(number<0){
-        cout<<"error: log2 with negative input"<<endl;
-        return 0;
-    }
-    while(number!=1){
-        if(number%2==1){
-            cout<<"error: log2 encountering odd number"<<endl;
-            return 0;
-        }
-        number = number/2;
-        result++;
-    }
-    return result;
-}
-
-void print_2(uint64_t number){
-    cout<<bitset<sizeof(number)*8>(number)<<endl;
-}
 
 Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss_Algorithm wma, Write_Hit_Algorithm wha){
     block_size = _block_size;
@@ -33,7 +16,6 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     //medatada个数: 共set_num*way_num个，每个要包含dirty, tag, valid
     //metadata长度：(Dirty→1)+64-log2(set_num*block_size)+Valid→1
     //(metadata长度+7)/8为所需uint8个数
-    //TODO:
     set_num = cache_size/(way_num*block_size);
     cout<<way_num<<"-way cache with block_size "<<block_size<<endl;
     cout<<"algorithms:"<<endl;
@@ -74,7 +56,7 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
 
     //替换策略
     if(ra==Replace_Algorithm::BT){
-        //TODO:
+        method = new BinaryTree(set_num, way_num);
     }
     else if(ra==Replace_Algorithm::LRU){
         //TODO:
@@ -86,9 +68,56 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
 
 Monitor::~Monitor(){
     delete[] metadata;
+    delete method;
 }
 
 //Function
+bool Monitor::read(uint64_t address){
+    int index = get_index(address);
+    int way = find_in_cache(address, false);
+    if(hit){
+        method->update(index, way);
+        return true;
+    }
+    else if(has_empty_line){
+        replace_in_cache(address, way, false);
+        return false;
+    }
+    else{
+        way = method->find_victim(index);
+        replace_in_cache(address, way, false);
+        method->update(index, way);
+        return false;
+    }
+}
+
+bool Monitor::write(uint64_t address){
+    int index = get_index(address);
+    int way = find_in_cache(address, true);
+    if(hit){
+        //dirty位在find_in_cache里解决
+        method->update(index, way);
+        return true;
+    }
+    else if(write_miss_algorithm==Write_Miss_Algorithm::No_Write_Allocate){
+        return false;
+    }
+    else if(has_empty_line){
+        //dirty位在replace_in_cache中解决
+        replace_in_cache(address, way, true);
+        return false;
+    }
+    else{
+        //dirty位在replace_in_cache中解决
+        way = method->find_victim(index);
+        replace_in_cache(address, way, true);
+        method->update(index, way);
+        return false;
+    }
+}
+
+
+//Operate in metadata
 int Monitor::find_in_cache(uint64_t address, bool write){
     uint64_t tag = get_tag(address);
     uint64_t index = get_index(address);
@@ -96,7 +125,7 @@ int Monitor::find_in_cache(uint64_t address, bool write){
     cout<<"tag: ";print_2(address);cout<<"index: ";print_2(index);
     hit = false;
     has_empty_line = false;
-    int first_invalid_way;
+    int first_invalid_way = -1;
     for(int way=0; way<way_num; way++){       //比较每一路
         bool hit_here = true;
         for(int k=metadata_tag_start_pos; k<metadata_tag_start_pos+tag_length;k++){ //比较tag的每一位
@@ -109,6 +138,10 @@ int Monitor::find_in_cache(uint64_t address, bool write){
         }
         if(hit_here){
             hit = test(valid_pos, index, way);
+            if(write && (write_hit_algorithm==Write_Hit_Algorithm::Write_Back)){
+                set(dirty_pos, index, way);
+            }
+            has_empty_line = true;  //如果没有hit的话那个invalid的位必可以填入新的
             return way;
         }
         else{
@@ -120,6 +153,27 @@ int Monitor::find_in_cache(uint64_t address, bool write){
     }
     hit = false;
     return first_invalid_way;
+}
+
+void Monitor::replace_in_cache(uint64_t address, int way, bool write){
+    uint64_t tag = get_tag(address);
+    uint64_t index = get_index(address);
+    for(int k=metadata_tag_start_pos; k<metadata_tag_start_pos+tag_length;k++){ //比较tag的每一位
+        bool bit = (tag % 2 == 1);
+        if(bit){
+            set(k, index, way);
+        }
+        else{
+            clear(k, index, way);
+        }
+        tag = tag >> 1;
+    }
+    set(valid_pos, index, way);
+    //No Write Allocate在write里解决
+    if(write_hit_algorithm==Write_Hit_Algorithm::Write_Back){
+        if(write) set(dirty_pos, index, way);
+        else clear(dirty_pos, index, way);
+    }
 }
 
 

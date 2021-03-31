@@ -2,7 +2,6 @@
 #include <stdint.h>
 #include <string.h>
 #include "method.h"
-#include "tools.h"
 using namespace std;
 
 const int cache_size = (1<<17);
@@ -49,11 +48,11 @@ private:
     //处理地址
     uint64_t get_tag(uint64_t address);
     uint64_t get_index(uint64_t address);
+    int find_in_cache(uint64_t address, bool write=false);     //返回-1则为没找到且没空位，否则返回的可能是hit的也可能是invalid的，看hit和has_empty_line
+    void replace_in_cache(uint64_t address, int way, bool write=false);  
 public:
     Monitor(int _block_size=8, int _way_num=8, Replace_Algorithm ra=Replace_Algorithm::BT, Write_Miss_Algorithm wma=Write_Miss_Algorithm::Write_Allocate, Write_Hit_Algorithm wha=Write_Hit_Algorithm::Write_Back);    
     ~Monitor();
-    bool read(uint64_t address);    //TODO:
-    bool write(uint64_t address);   //TODO:
-    int find_in_cache(uint64_t address, bool write=false);   //返回-1则为没找到
-    void replace_in_cache(uint64_t address, int way);        //TODO:填充空位和替换共用一个函数，里面记得update一下method
+    bool read(uint64_t address);
+    bool write(uint64_t address);
 };

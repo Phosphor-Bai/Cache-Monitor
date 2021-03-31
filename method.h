@@ -12,19 +12,21 @@ public:
         set_num = _set_num;
         way_num = _way_num;
     }
-    ~Method(){}
+    ~Method(){;}
     bool test(int k, int way);
     void set(int k, int way);
     void clear(int k, int way);
-    //TODO: 参数？？？
-    virtual void update();
-    virtual int find_victim();
+    //解决undefined reference to `vtable for Method'的方法：改为纯虚函数
+    virtual int find_victim(int index) = 0;
+    virtual void update(int index, int way) = 0;
 };
 
 class BinaryTree: public Method{
+    int step;
 public:
     BinaryTree(int _set_num, int _way_num);
     ~BinaryTree();
-    void update();      //TODO:
-    int find_victim();  //TODO:
+    void update();
+    int find_victim(int index);
+    void update(int index, int way);
 };
