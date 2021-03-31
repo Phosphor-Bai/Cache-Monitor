@@ -1,16 +1,17 @@
 #include <iostream>
+#include <stdint.h>
 #include "method.h"
 using namespace std;
 
 const int cache_size = (1<<17);
 
-enum struct Replace_Algorithm{
+enum class Replace_Algorithm{
     BT, LRU
 };
-enum struct Write_Hit_Algorithm{
+enum class Write_Hit_Algorithm{
     Write_Through, Write_Back
 };
-enum struct Write_Miss_Algorithm{
+enum class Write_Miss_Algorithm{
     Write_Allocate, No_Write_Allocate
 };
 
@@ -34,8 +35,7 @@ private:
     //replace method
     Method* method;
 public:
-    Method method;
-    Monitor(int _block_size=8, int _way_num=8, Replace_Algorithm ra=Replace_Algorithm::BT, Write_Miss_Algorithm wma=Write_Miss_Algorithm::Write_Allocate, Write_Hit_Algorithm wha=Write_Hit_Algorithm::Write_Back);
+    Monitor(int _block_size=8, int _way_num=8, Replace_Algorithm ra=Replace_Algorithm::BT, Write_Miss_Algorithm wma=Write_Miss_Algorithm::Write_Allocate, Write_Hit_Algorithm wha=Write_Hit_Algorithm::Write_Back);    
     ~Monitor(){}
     bool read(uint64_t address){
         return false;

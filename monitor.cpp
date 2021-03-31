@@ -18,7 +18,7 @@ int int_log2(int number){
     return result;
 }
 
-Monitor::Monitor(int _block_size=8, int _way_num=8, Replace_Algorithm ra=Replace_Algorithm::BT, Write_Miss_Algorithm wma=Write_Miss_Algorithm::Write_Allocate, Write_Hit_Algorithm wha=Write_Hit_Algorithm::Write_Back){
+Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss_Algorithm wma, Write_Hit_Algorithm wha){
     block_size = _block_size;
     way_num = _way_num;
     write_miss_algorithm = wma;
