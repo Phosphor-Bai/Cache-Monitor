@@ -60,7 +60,8 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
         method = new BinaryTree(set_num, way_num);
     }
     else if(ra==Replace_Algorithm::LRU){
-        //TODO:
+        //cout<<"replace algorithm: Least Recently Used"<<endl;
+        method = new LeastRecentlyUsed(set_num, way_num);
     }
     else{
         //TODO:

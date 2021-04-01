@@ -108,7 +108,7 @@ int LeastRecentlyUsed::find_victim(int index){
             return way;
         }
     }
-    cout<<"error in LRU stack (index: "<<index<<")"<<endl;
+    //cout<<"error in LRU stack (index: "<<index<<")"<<endl;
     return -1;
 }
 

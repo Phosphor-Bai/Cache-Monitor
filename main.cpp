@@ -18,10 +18,11 @@ uint64_t string_to_int64(char* s){
 
 int main(){
     int block_size = 8;
-    int way_num = 8;
-    string ra_s = "BT";
+    int way_num = 1;
+    string ra_s = "LRU";
     string wha_s = "WriteBack";
     string wma_s = "WriteAllocate";
+    string trace_index = "4";
     //TODO:new algorithm
     Replace_Algorithm ra = (ra_s == "BT") ? Replace_Algorithm::BT : Replace_Algorithm::LRU;
     Write_Hit_Algorithm wha = (wha_s == "WriteBack") ? Write_Hit_Algorithm::Write_Back : Write_Hit_Algorithm::Write_Through;
@@ -29,9 +30,9 @@ int main(){
 
     Monitor monitor = Monitor(block_size, way_num, ra, wma, wha);
 
-    string log_name = "./result/" + to_string(block_size) + "B_" + to_string(way_num) + "way_" + ra_s + "_" + wha_s + "_" + wma_s + "_trace1_log";
+    string log_name = "./result/" + to_string(block_size) + "B_" + to_string(way_num) + "way_" + ra_s + "_" + wha_s + "_" + wma_s + "_trace" + trace_index + "_log";
     ofstream outLog(log_name);
-    ifstream inTrace("./test_trace/1.trace");
+    ifstream inTrace("./test_trace/"+ trace_index + ".trace");
     char buffer[1024];
     bool result;
     int count = 0;
