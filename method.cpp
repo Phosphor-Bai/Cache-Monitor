@@ -61,3 +61,67 @@ void BinaryTree::update(int index, int way){
         }
     }
 }
+
+
+void LeastRecentlyUsed::set_state(int index, int way, int number){
+    for(int i=0; i<width; i++){
+        if(number % 2 ==0){
+            clear(way*width+i, index);
+        }
+        else{
+            set(way*width+i, index);
+        }
+        number = number/2;
+    }
+}
+
+int LeastRecentlyUsed::get_state(int index, int way){
+    int number = 0;
+    for(int i=0; i<width; i++){
+        if(test(way*width+i, index)){
+            number += 1;
+        }
+        number *= 2;
+    }
+    return number;
+}
+
+LeastRecentlyUsed::LeastRecentlyUsed(int _set_num, int _way_num): Method(_set_num, _way_num){
+    width = 3;
+    statedata_length = 3;
+    statedata = new uint8_t[3*set_num];  //固定8-way
+    memset(statedata, 0, 3*set_num);
+    for(int index=0; index<_set_num; index++){
+        for(int way=0; way<_way_num; way++){    //一开始就按0~7写
+            set_state(index, way, way);
+        }
+    }
+}
+
+LeastRecentlyUsed::~LeastRecentlyUsed(){
+    delete[] statedata;
+}
+
+int LeastRecentlyUsed::find_victim(int index){
+    for(int way=0; way<way_num; way++){
+        if(get_state(index, way) == 0){
+            return way;
+        }
+    }
+    cout<<"error in LRU stack (index: "<<index<<")"<<endl;
+    return -1;
+}
+
+void LeastRecentlyUsed::update(int index, int way){
+    int former_value = get_state(index, way);
+    for(int w=0; w<way_num; w++){
+        if(w==way){
+            set_state(index, w, 0);
+        }
+        else if(get_state(index, w) < former_value){
+            int new_value = get_state(index, w) + 1;
+            set_state(index, w, new_value);
+        }
+    }
+    return;
+}

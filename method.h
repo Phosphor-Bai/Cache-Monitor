@@ -26,7 +26,17 @@ class BinaryTree: public Method{
 public:
     BinaryTree(int _set_num, int _way_num);
     ~BinaryTree();
-    void update();
+    int find_victim(int index);
+    void update(int index, int way);
+};
+
+class LeastRecentlyUsed: public Method{
+    int width;
+public:
+    LeastRecentlyUsed(int _set_num, int _way_num);
+    ~LeastRecentlyUsed();
+    void set_state(int index, int way, int number);
+    int get_state(int index, int way);
     int find_victim(int index);
     void update(int index, int way);
 };

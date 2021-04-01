@@ -17,19 +17,19 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     //metadata长度：(Dirty→1)+64-log2(set_num*block_size)+Valid→1
     //(metadata长度+7)/8为所需uint8个数
     set_num = cache_size/(way_num*block_size);
-    cout<<way_num<<"-way cache with block_size "<<block_size<<endl;
-    cout<<"algorithms:"<<endl;
+    //cout<<way_num<<"-way cache with block_size "<<block_size<<endl;
+    //cout<<"algorithms:"<<endl;
     if(wha==Write_Hit_Algorithm::Write_Back){
-        cout<<"-Write Back"<<endl;
+        //cout<<"-Write Back"<<endl;
     }
     else{
-        cout<<"-Write Through"<<endl;
+        //cout<<"-Write Through"<<endl;
     }
     if(wma==Write_Miss_Algorithm::Write_Allocate){
-        cout<<"-Write Allocate"<<endl;
+        //cout<<"-Write Allocate"<<endl;
     }
     else{
-        cout<<"-Not Write Allocate"<<endl;
+        //cout<<"-Not Write Allocate"<<endl;
     }
 
     //metadata
@@ -40,9 +40,9 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     }
     tag_length = (64-int_log2(set_num*block_size));
     metadata_length += tag_length;   //Tag = Whole-Index-Offset
-    cout<<"metadata length in bits: "<<metadata_length<<endl;
+    //cout<<"metadata length in bits: "<<metadata_length<<endl;
     metadata_length = (metadata_length+7)/8;
-    cout<<"metadata length in char: "<<metadata_length<<endl;
+    //cout<<"metadata length in char: "<<metadata_length<<endl;
     dirty_pos = metadata_length*8-1;
     metadata_tag_start_pos = dirty_pos-tag_length;
     valid_pos = 0;
@@ -52,10 +52,11 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     //address
     addr_index_start = int_log2(block_size);
     addr_tag_start = 64 - tag_length;
-    cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
+    //cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
 
     //替换策略
     if(ra==Replace_Algorithm::BT){
+        //cout<<"replace algorithm: Binary Tree"<<endl;
         method = new BinaryTree(set_num, way_num);
     }
     else if(ra==Replace_Algorithm::LRU){
@@ -121,8 +122,8 @@ bool Monitor::write(uint64_t address){
 int Monitor::find_in_cache(uint64_t address, bool write){
     uint64_t tag = get_tag(address);
     uint64_t index = get_index(address);
-    cout<<"address: ";print_2(address);
-    cout<<"tag: ";print_2(address);cout<<"index: ";print_2(index);
+    //cout<<"address: ";print_2(address);
+    //cout<<"tag: ";print_2(tag);//cout<<"index: ";print_2(index);
     hit = false;
     has_empty_line = false;
     int first_invalid_way = -1;
