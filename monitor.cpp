@@ -42,18 +42,26 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     metadata_length += tag_length;   //Tag = Whole-Index-Offset
     cout<<"metadata length in bits: "<<metadata_length<<endl;
     metadata_length = (metadata_length+7)/8;
-    cout<<"metadata length in char: "<<metadata_length<<endl;
-    dirty_pos = metadata_length*8-1;
-    metadata_tag_start_pos = dirty_pos-tag_length;
-    valid_pos = 0;
-    cout<<"metadata: |D|"<<dirty_pos-1<<"-tag-"<<metadata_tag_start_pos<<"|...|V|"<<endl;
+    //cout<<"metadata length in char: "<<metadata_length<<endl;
+    if(wha==Write_Hit_Algorithm::Write_Back){
+        dirty_pos = metadata_length*8-1;
+        metadata_tag_start_pos = dirty_pos-tag_length;
+        valid_pos = 0;
+        cout<<"metadata: |D|"<<dirty_pos-1<<"-tag-"<<metadata_tag_start_pos<<"|...|V|"<<endl; 
+    }
+    else{
+        dirty_pos = metadata_length * 8;    //没有dirty位
+        metadata_tag_start_pos = dirty_pos-tag_length;
+        valid_pos = 0;
+        cout<<"metadata: |"<<dirty_pos-1<<"-tag-"<<metadata_tag_start_pos<<"|...|V|"<<endl; 
+    }
     metadata = new uint8_t[metadata_num*metadata_length];
     memset(metadata, 0, metadata_num*metadata_length);
 
     //address
     addr_index_start = int_log2(block_size);
     addr_tag_start = 64 - tag_length;
-    cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
+    //cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
 
     //替换策略
     if(ra==Replace_Algorithm::BT){
@@ -79,7 +87,7 @@ bool Monitor::read(uint64_t address){
     int index = get_index(address);
     int way = find_in_cache(address, false);
     /*
-    if(index==1462){
+    if(index==592){
         cout<<"address: "<<address<<endl;
         cout<<"way: "<<way<<endl;
         cout<<"hit: "<<hit<<endl;
@@ -118,11 +126,12 @@ bool Monitor::write(uint64_t address){
     int index = get_index(address);
     int way = find_in_cache(address, true);
     /*
-    if(index==1462){
+    if(index==592){
         cout<<"address: "<<address<<endl;
         cout<<"way: "<<way<<endl;
         cout<<"hit: "<<hit<<endl;
         cout<<"has empty: "<<has_empty_line<<endl;
+        cout<<"index: "<<index;
         cout<<"tag: "<<get_tag(address)<<endl;
         cout<<"tag_start: "<<metadata_tag_start_pos<<endl;
         

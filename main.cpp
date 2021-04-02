@@ -18,8 +18,8 @@ uint64_t string_to_int64(char* s){
 
 int main(){
     int block_size = 8;
-    int way_num = 4;
-    string ra_s = "BT";
+    int way_num = 8;
+    string ra_s = "LRU";
     string wha_s = "WriteBack";
     string wma_s = "WriteAllocate";
     //TODO:new algorithm
@@ -27,8 +27,8 @@ int main(){
     Write_Hit_Algorithm wha = (wha_s == "WriteBack") ? Write_Hit_Algorithm::Write_Back : Write_Hit_Algorithm::Write_Through;
     Write_Miss_Algorithm wma = (wma_s == "WriteAllocate") ? Write_Miss_Algorithm::Write_Allocate : Write_Miss_Algorithm::No_Write_Allocate;
 
-    Monitor monitor = Monitor(block_size, way_num, ra, wma, wha);
     for(int i=1; i<5; i++){
+        Monitor monitor = Monitor(block_size, way_num, ra, wma, wha);
         string trace_index = to_string(i);
         string log_name = "./result/" + to_string(block_size) + "B_" + to_string(way_num) + "way_" + ra_s + "_" + wha_s + "_" + wma_s + "_trace" + trace_index + "_log";
         ofstream outLog(log_name);
