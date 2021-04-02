@@ -73,7 +73,7 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
         method = new LeastRecentlyUsed(set_num, way_num);
     }
     else{
-        //TODO:
+        method = new ProtectedLRU(set_num, way_num);
     }
 }
 

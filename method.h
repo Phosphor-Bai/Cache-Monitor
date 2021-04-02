@@ -40,3 +40,16 @@ public:
     int find_victim(int index);
     void update(int index, int way);
 };
+
+class ProtectedLRU: public Method{
+    int stack_width;
+    int count_width;
+    int protect_num;
+public:
+    ProtectedLRU(int _set_num, int _way_num);
+    ~ProtectedLRU();
+    void set_state(int index, int way, int number, bool is_stack);
+    int get_state(int index, int way, bool is_stack);
+    int find_victim(int index);
+    void update(int index, int way);
+};

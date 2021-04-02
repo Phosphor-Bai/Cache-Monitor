@@ -7,7 +7,7 @@ using namespace std;
 const int cache_size = (1<<17);
 
 enum class Replace_Algorithm{
-    BT, LRU
+    BT, LRU, PLRU
 };
 enum class Write_Hit_Algorithm{
     Write_Through, Write_Back
