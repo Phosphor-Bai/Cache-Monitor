@@ -40,19 +40,20 @@ Monitor::Monitor(int _block_size, int _way_num, Replace_Algorithm ra, Write_Miss
     }
     tag_length = (64-int_log2(set_num*block_size));
     metadata_length += tag_length;   //Tag = Whole-Index-Offset
-    //cout<<"metadata length in bits: "<<metadata_length<<endl;
+    cout<<"metadata length in bits: "<<metadata_length<<endl;
     metadata_length = (metadata_length+7)/8;
-    //cout<<"metadata length in char: "<<metadata_length<<endl;
+    cout<<"metadata length in char: "<<metadata_length<<endl;
     dirty_pos = metadata_length*8-1;
     metadata_tag_start_pos = dirty_pos-tag_length;
     valid_pos = 0;
+    cout<<"metadata: |D|"<<dirty_pos-1<<"-tag-"<<metadata_tag_start_pos<<"|...|V|"<<endl;
     metadata = new uint8_t[metadata_num*metadata_length];
     memset(metadata, 0, metadata_num*metadata_length);
 
     //address
     addr_index_start = int_log2(block_size);
     addr_tag_start = 64 - tag_length;
-    //cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
+    cout<<"address: |63--tag--"<<addr_tag_start<<"|"<<(addr_tag_start-1)<<"--index--"<<addr_index_start<<"|"<<(addr_index_start-1)<<"--offset--0|"<<endl;
 
     //替换策略
     if(ra==Replace_Algorithm::BT){
@@ -77,12 +78,32 @@ Monitor::~Monitor(){
 bool Monitor::read(uint64_t address){
     int index = get_index(address);
     int way = find_in_cache(address, false);
+    /*
+    if(index==1462){
+        cout<<"address: "<<address<<endl;
+        cout<<"way: "<<way<<endl;
+        cout<<"hit: "<<hit<<endl;
+        cout<<"has empty: "<<has_empty_line<<endl;
+        cout<<"tag: "<<get_tag(address)<<endl;
+        cout<<"tag_start: "<<metadata_tag_start_pos<<endl;
+        for(int w=0; w<way_num; w++){
+            cout<<"metadata: ";
+            for(int i=0; i<metadata_length; i++){
+                uint8_t number = metadata[(index*way_num+w)*metadata_length+i];
+                cout<<bitset<sizeof(number)*8>(number)<<" ";
+            }
+            cout<<endl;
+        }
+    }
+    */
+
     if(hit){
         method->update(index, way);
         return true;
     }
     else if(has_empty_line){
         replace_in_cache(address, way, false);
+        method->update(index, way);
         return false;
     }
     else{
@@ -96,6 +117,26 @@ bool Monitor::read(uint64_t address){
 bool Monitor::write(uint64_t address){
     int index = get_index(address);
     int way = find_in_cache(address, true);
+    /*
+    if(index==1462){
+        cout<<"address: "<<address<<endl;
+        cout<<"way: "<<way<<endl;
+        cout<<"hit: "<<hit<<endl;
+        cout<<"has empty: "<<has_empty_line<<endl;
+        cout<<"tag: "<<get_tag(address)<<endl;
+        cout<<"tag_start: "<<metadata_tag_start_pos<<endl;
+        
+        for(int w=0; w<way_num; w++){
+            cout<<"metadata: ";
+            for(int i=0; i<metadata_length; i++){
+                uint8_t number = metadata[(index*way_num+w)*metadata_length+i];
+                cout<<bitset<sizeof(number)*8>(number)<<" ";
+            }
+            cout<<endl;
+        }   
+    }
+    */
+
     if(hit){
         //dirty位在find_in_cache里解决
         method->update(index, way);
@@ -107,6 +148,7 @@ bool Monitor::write(uint64_t address){
     else if(has_empty_line){
         //dirty位在replace_in_cache中解决
         replace_in_cache(address, way, true);
+        method->update(index, way);
         return false;
     }
     else{
@@ -121,7 +163,6 @@ bool Monitor::write(uint64_t address){
 
 //Operate in metadata
 int Monitor::find_in_cache(uint64_t address, bool write){
-    uint64_t tag = get_tag(address);
     uint64_t index = get_index(address);
     //cout<<"address: ";print_2(address);
     //cout<<"tag: ";print_2(tag);//cout<<"index: ";print_2(index);
@@ -129,9 +170,14 @@ int Monitor::find_in_cache(uint64_t address, bool write){
     has_empty_line = false;
     int first_invalid_way = -1;
     for(int way=0; way<way_num; way++){       //比较每一路
+        uint64_t tag = get_tag(address);
         bool hit_here = true;
         for(int k=metadata_tag_start_pos; k<metadata_tag_start_pos+tag_length;k++){ //比较tag的每一位
             bool bit = (tag % 2 == 1);
+            //if(index==1462){
+            //    cout<<way<<" "<<bit<<" "<<test(k, index, way)<<endl;
+            //}
+            
             if(test(k, index, way)!=bit){
                 hit_here = false;
                 break;
